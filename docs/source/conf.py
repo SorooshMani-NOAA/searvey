@@ -14,7 +14,9 @@ import sys
 from os import PathLike
 from pathlib import Path
 
+import toml
 from dunamai import Version
+from setuptools import config
 
 
 def repository_root(path: PathLike = None) -> Path:
@@ -40,12 +42,14 @@ subprocess.run(
 )
 
 # -- Project information -----------------------------------------------------
-project = "searvey"
+metadata = toml.load("../../pyproject.toml")["tool"]["poetry"]
+
+project = metadata["name"]
 copyright = f"{datetime.date.today().year}, https://github.com/oceanmodeling"
 
 # The full version, including alpha/beta/rc tags
 try:
-    release = Version.from_any_vcs().serialize(dirty=True)
+    release = Version.from_any_vcs().serialize()
 except RuntimeError:
     release = os.environ.get("VERSION", "0.0.0")
 

@@ -6,4 +6,3 @@
    installation
    coops
    ioc
-   usgs

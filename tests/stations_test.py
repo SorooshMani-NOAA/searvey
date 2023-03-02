@@ -2,6 +2,7 @@ import datetime
 
 import geopandas as gpd
 import pandas as pd
+import pytest
 
 from searvey import stations
 

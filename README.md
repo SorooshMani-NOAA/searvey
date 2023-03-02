@@ -7,78 +7,34 @@
 
 Searvey aims to provide the following functionality:
 
-- Unified catalogue of observational data including near real time (WIP).
+- Unified catalogue of observational data including near real time.
 
-- Real time data analysis/clean up to facilitate comparison with numerical models (WIP).
+- Real time data analysis/clean up to facilitate comparison with numerical
+  models.
 
 - On demand data retrieval from multiple sources that currently include:
 
     - U.S. Center for Operational Oceanographic Products and Services (CO-OPS)
     - Flanders Marine Institute (VLIZ); Intergovernmental Oceanographic Commission (IOC)
-    - U.S. Geological Survey (USGS)
 
 ## Installation
 
-The package can be installed with `pip`:
+The package can be installed with `conda`:
 
-```
-pip install searvey
-```
-
-and conda`:
-
-```
-conda install -c conda-forge searvey
-```
-
+`conda install -c conda-forge searvey`
 
 ## Development
-
-In order to develop `searvey` you will need:
-
-- Python 3.8+
-- GNU Make
-- [poetry](https://python-poetry.org/) >= 1.2 (you can install it with [pipx](https://github.com/pypa/pipx): `pipx install poetry`).
-- [poetry-dynamic-versioning](https://github.com/mtkennerly/poetry-dynamic-versioning) which is a poetry plugin.
-  Take note that this needs to be installed in the same (virtual) environment as poetry, not in the `searvey` one!
-  If you used `pipx` for installing `poetry`, then you can inject it in the proper env with `pipx inject poetry poetry-dynamic-versioning`.
-- [pre-commit](https://pre-commit.com/). You can also install this one with `pipx`: `pipx install pre-commit`
-
-In order to setup the dev environment you can use:
 
 ```
 python3 -mvenv .venv
 source .venv/bin/activate
-make init
+poetry install
+pre-commit install
 ```
-
-which will:
-
-1. create and activate a virtual environment,
-2. install the full set of dependencies
-3. Setup the pre-commit hooks
-
-After that you should run the tests with:
-
-```
-make test
-```
-
-If you execute `make` without arguments, you should see more subcommands. E.g.
-
-```
-make mypy
-make lint
-make docs
-make deps
-```
-
-Check them out!
-
-### Jupyter
 
 If you wish to use jupyterlab to test searvey, then, assuming you have an
-existing jupyterlab installation, you should be able to add a kernel to it with:
+existing jupyterlab
+installation, you should be able to add a kernel to it with:
 
 ```bash
 python -m ipykernel install --user --name searvey
