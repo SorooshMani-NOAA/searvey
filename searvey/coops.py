@@ -2,6 +2,8 @@
 interface with the U.S. National Oceanic and Atmospheric Administration (NOAA) Center for Operational Oceanographic Products and Services (CO-OPS) API
 https://api.tidesandcurrents.noaa.gov/api/prod/
 """
+from __future__ import annotations
+
 import json
 import logging
 from abc import ABC
@@ -19,7 +21,6 @@ import numpy
 import pandas
 import requests
 import shapely
-import typepigeon
 import xarray
 from bs4 import BeautifulSoup
 from bs4 import element
@@ -69,9 +70,9 @@ class Station(ABC):
         self,
         product: StationDataProduct,
         start_date: datetime,
-        end_date: datetime = None,
-        interval: StationDataInterval = None,
-        datum: StationDatum = None,
+        end_date: datetime | None = None,
+        interval: StationDataInterval | None = None,
+        datum: StationDatum | None = None,
     ) -> Dataset:
         """
         retrieve data for the current station within the specified parameters
@@ -106,9 +107,9 @@ class StationQuery(ABC):
         station_id: str,
         product: StationDataProduct,
         start_date: datetime,
-        end_date: datetime = None,
-        interval: StationDataInterval = None,
-        datum: StationDatum = None,
+        end_date: datetime | None = None,
+        interval: StationDataInterval | None = None,
+        datum: StationDatum | None = None,
     ):
         self.station_id = station_id
         self.product = product
@@ -304,9 +305,9 @@ class COOPS_Station(Station):  # noqa: N801
         self,
         product: COOPS_Product,
         start_date: datetime,
-        end_date: datetime = None,
-        interval: COOPS_Interval = None,
-        datum: COOPS_TidalDatum = None,
+        end_date: datetime | None = None,
+        interval: COOPS_Interval | None = None,
+        datum: COOPS_TidalDatum | None = None,
     ) -> Dataset:
         """
         retrieve data for the current station within the specified parameters
@@ -399,11 +400,11 @@ class COOPS_Query(StationQuery):  # noqa: N801
         station: int,
         product: COOPS_Product,
         start_date: datetime,
-        end_date: datetime = None,
-        datum: COOPS_TidalDatum = None,
-        units: COOPS_Units = None,
-        time_zone: COOPS_TimeZone = None,
-        interval: COOPS_Interval = None,
+        end_date: datetime | None = None,
+        datum: COOPS_TidalDatum | None = None,
+        units: COOPS_Units | None = None,
+        time_zone: COOPS_TimeZone | None = None,
+        interval: COOPS_Interval | None = None,
     ):
         """
         instantiate a new query with the specified parameters
@@ -469,44 +470,69 @@ class COOPS_Query(StationQuery):  # noqa: N801
         self.__end_date = pandas.to_datetime(end_date)
 
     @property
-    def product(self) -> COOPS_Product:
+    def product(self) -> COOPS_Product | None:
         return self.__product
 
     @product.setter
-    def product(self, product: COOPS_Product) -> None:
-        self.__product = typepigeon.convert_value(product, COOPS_Product)
+    def product(self, product: COOPS_Product | None) -> None:
+        if product is None:
+            self.__product = None
+        elif isinstance(product, COOPS_Product):
+            self.__product = product
+        else:
+            self.__product = COOPS_Product[product.upper()]
 
     @property
-    def datum(self) -> COOPS_TidalDatum:
+    def datum(self) -> COOPS_TidalDatum | None:
         return self.__datum
 
     @datum.setter
-    def datum(self, datum: COOPS_TidalDatum) -> None:
-        self.__datum = typepigeon.convert_value(datum, COOPS_TidalDatum)
+    def datum(self, datum: COOPS_TidalDatum | None) -> None:
+        if datum is None:
+            self.__datum = None
+        elif isinstance(datum, COOPS_TidalDatum):
+            self.__datum = datum
+        else:
+            self.__datum = COOPS_TidalDatum[datum.upper()]
 
     @property
-    def units(self) -> COOPS_Units:
+    def units(self) -> COOPS_Units | None:
         return self.__units
 
     @units.setter
-    def units(self, units: COOPS_Units) -> None:
-        self.__units = typepigeon.convert_value(units, COOPS_Units)
+    def units(self, units: COOPS_Units | None) -> None:
+        if units is None:
+            self.__units = None
+        elif isinstance(units, COOPS_Units):
+            self.__units = units
+        else:
+            self.__units = COOPS_Units[units.upper()]
 
     @property
-    def time_zone(self) -> COOPS_TimeZone:
+    def time_zone(self) -> COOPS_TimeZone | None:
         return self.__time_zone
 
     @time_zone.setter
-    def time_zone(self, time_zone: COOPS_TimeZone) -> None:
-        self.__time_zone = typepigeon.convert_value(time_zone, COOPS_TimeZone)
+    def time_zone(self, time_zone: COOPS_TimeZone | None) -> None:
+        if time_zone is None:
+            self.__time_zone = None
+        elif isinstance(time_zone, COOPS_TimeZone):
+            self.__time_zone = time_zone
+        else:
+            self.__time_zone = COOPS_TimeZone[time_zone.upper()]
 
     @property
-    def interval(self) -> COOPS_Interval:
+    def interval(self) -> COOPS_Interval | None:
         return self.__interval
 
     @interval.setter
-    def interval(self, interval: COOPS_Interval) -> None:
-        self.__interval = typepigeon.convert_value(interval, COOPS_Interval)
+    def interval(self, interval: COOPS_Interval | None) -> None:
+        if interval is None:
+            self.__interval = None
+        elif isinstance(interval, COOPS_Interval):
+            self.__interval = interval
+        else:
+            self.__interval = COOPS_Interval[interval.upper()]
 
     @property
     def query(self) -> Dict[str, Any]:
@@ -589,7 +615,17 @@ class COOPS_Query(StationQuery):  # noqa: N801
         return self.__data
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}({", ".join(repr(value) for value in (self.station_id, self.start_date, self.end_date, self.product.value, self.datum.value, self.units.value, self.time_zone.value, self.interval.value))})'
+        attributes = (
+            self.station_id,
+            self.start_date,
+            self.end_date,
+            self.product.value,  # type: ignore[union-attr]
+            self.datum.value,  # type: ignore[union-attr]
+            self.units.value,  # type: ignore[union-attr]
+            self.time_zone.value,  # type: ignore[union-attr]
+            self.interval.value,  # type: ignore[union-attr]
+        )
+        return f'{self.__class__.__name__}({", ".join(repr(value) for value in attributes)})'
 
 
 @lru_cache(maxsize=1)
@@ -602,7 +638,7 @@ def __coops_stations_html_tables() -> element.ResultSet:
 
 
 @lru_cache(maxsize=1)
-def coops_stations(station_status: StationStatus = None) -> GeoDataFrame:
+def coops_stations(station_status: StationStatus | None = None) -> GeoDataFrame:
     """
     retrieve a list of CO-OPS stations with associated metadata
 
@@ -755,8 +791,8 @@ def coops_stations(station_status: StationStatus = None) -> GeoDataFrame:
 
 
 def coops_stations_within_region(
-    region: Polygon,
-    station_status: StationStatus = None,
+    region: Polygon | None = None,
+    station_status: StationStatus | None = None,
 ) -> GeoDataFrame:
     """
     retrieve all stations within the specified region of interest
@@ -796,7 +832,7 @@ def coops_stations_within_bounds(
     miny: float,
     maxx: float,
     maxy: float,
-    station_status: StationStatus = None,
+    station_status: StationStatus | None = None,
 ) -> GeoDataFrame:
     return coops_stations_within_region(
         region=shapely.geometry.box(minx=minx, miny=miny, maxx=maxx, maxy=maxy),
@@ -808,10 +844,10 @@ def coops_product_within_region(
     product: COOPS_Product,
     region: Union[Polygon, MultiPolygon],
     start_date: datetime,
-    end_date: datetime = None,
-    datum: COOPS_TidalDatum = None,
-    interval: COOPS_Interval = None,
-    station_status: StationStatus = None,
+    end_date: datetime | None = None,
+    datum: COOPS_TidalDatum | None = None,
+    interval: COOPS_Interval | None = None,
+    station_status: StationStatus | None = None,
 ) -> Dataset:
     """
     retrieve CO-OPS data from within the specified region of interest
