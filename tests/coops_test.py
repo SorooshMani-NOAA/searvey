@@ -1,6 +1,13 @@
+import contextlib
 from datetime import datetime
+from datetime import timedelta
+from urllib.parse import quote
 
+import httpx
+import numpy as np
+import pandas as pd
 import pytest
+import pytz
 from shapely.geometry import box
 
 from searvey import fetch_coops_station
@@ -78,7 +85,7 @@ def test_coops_stations_main_api():
 
     with pytest.raises(ValueError) as excinfo:
         get_coops_stations(metadata_source="someothersource")
-    assert "not a valid stationmetadatasource" in str(excinfo.value).lower()
+    assert "not a valid coops_stationmetadatasource" in str(excinfo.value).lower()
 
 
 @pytest.mark.vcr
@@ -90,6 +97,7 @@ def test_coops_stations_within_region_main_api():
     assert len(stations) > 0
     assert list(stations.columns) == [
         "nws_id",
+        "station_type",
         "name",
         "state",
         "lon",

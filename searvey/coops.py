@@ -21,7 +21,6 @@ import pandas
 import pandas as pd
 import requests
 import shapely
-import tenacity
 import xarray
 from bs4 import BeautifulSoup
 from bs4 import element
@@ -86,6 +85,9 @@ StationTypes = [
 ]
 
 
+# NOTE:
+# DAILY_MEAN is only available for Great Lakes stations and at LST
+# for SALINITY couldn't find a station that provides data!
 class COOPS_Product(Enum):  # noqa: N801
     WATER_LEVEL = (
         "water_level"
@@ -101,10 +103,10 @@ class COOPS_Product(Enum):  # noqa: N801
         "visibility"  # Visibility from the station's visibility sensor. A measure of atmospheric clarity.
     )
     HUMIDITY = "humidity"  # Relative humidity as measured at the station.
-    SALINITY = "salinity"  # Salinity and specific gravity data for the station.
+    # SALINITY = "salinity"  # Salinity and specific gravity data for the station.
     HOURLY_HEIGHT = "hourly_height"  # Verified hourly height water level data for the station.
     HIGH_LOW = "high_low"  # Verified high/low water level data for the station.
-    DAILY_MEAN = "daily_mean"  # Verified daily mean water level data for the station.
+    # DAILY_MEAN = "daily_mean"  # Verified daily mean water level data for the station.
     MONTHLY_MEAN = "monthly_mean"  # Verified monthly mean water level data for the station.
     ONE_MINUTE_WATER_LEVEL = (
         "one_minute_water_level"
@@ -119,105 +121,6 @@ class COOPS_Product(Enum):  # noqa: N801
     )
 
 
-<<<<<<< HEAD
-COOPS_ProductFieldsNameMap = {
-    COOPS_Product.WATER_LEVEL: {"t": "time", "v": "value", "s": "sigma", "f": "flags", "q": "quality"},
-    COOPS_Product.HOURLY_HEIGHT: {"t": "time", "v": "value", "s": "sigma", "f": "flags"},
-    COOPS_Product.HIGH_LOW: {"t": "time", "v": "value", "ty": "type", "f": "flags"},
-    COOPS_Product.DAILY_MEAN: {"t": "time", "v": "value", "f": "flags"},
-    COOPS_Product.MONTHLY_MEAN: {
-        "year": "year",
-        "month": "month",
-        "highest": "highest",
-        "MHHW": "MHHW",
-        "MHW": "MHW",
-        "MSL": "MSL",
-        "MTL": "MTL",
-        "MLW": "MLW",
-        "MLLW": "MLLW",
-        "DTL": "DTL",
-        "GT": "GT",
-        "MN": "MN",
-        "DHQ": "DHQ",
-        "DLQ": "DLQ",
-        "HWI": "HWI",
-        "LWI": "LWI",
-        "lowest": "lowest",
-        "inferred": "inferred",
-    },
-    COOPS_Product.ONE_MINUTE_WATER_LEVEL: {"t": "time", "v": "value"},
-    COOPS_Product.PREDICTIONS: {"t": "time", "v": "value"},
-    COOPS_Product.AIR_GAP: {"t": "time", "v": "value", "s": "sigma", "f": "flags"},
-    COOPS_Product.WIND: {
-        "t": "time",
-        "s": "speed",
-        "d": "degree",
-        "dr": "direction",
-        "g": "gust",
-        "f": "flags",
-    },
-    COOPS_Product.AIR_PRESSURE: {"t": "time", "v": "value", "f": "flags"},
-    COOPS_Product.AIR_TEMPERATURE: {"t": "time", "v": "value", "f": "flags"},
-    COOPS_Product.VISIBILITY: {"t": "time", "v": "value", "f": "flags"},
-    COOPS_Product.HUMIDITY: {"t": "time", "v": "value", "f": "flags"},
-    COOPS_Product.WATER_TEMPERATURE: {"t": "time", "v": "value", "f": "flags"},
-    COOPS_Product.CONDUCTIVITY: {"t": "time", "v": "value", "f": "flags"},
-    COOPS_Product.SALINITY: {"t": "time", "s": "salinity", "g": "specific_gravity"},
-    COOPS_Product.CURRENTS: {"t": "time", "s": "speed", "d": "direction", "b": "bin"},
-    COOPS_Product.CURRENTS_PREDICTIONS: {
-        "Time": "time",
-        "Velocity_Major": "velocity",
-        "meanEbbDir": "ebb_dir",
-        "meanFloodDir": "flood_dir",
-        "Bin": "bin",
-        "Depth": "depth",
-        "Speed": "speed",
-        "Direction": "direction",
-    },
-}
-
-
-COOPS_ProductFieldTypes = {
-    "DHQ": float,
-    "DLQ": float,
-    "DTL": float,
-    "GT": float,
-    "HWI": int,
-    "LWI": int,
-    "MHHW": float,
-    "MHW": float,
-    "MLLW": float,
-    "MLW": float,
-    "MN": float,
-    "MSL": float,
-    "MTL": float,
-    "bin": int,
-    "degree": float,
-    "depth": float,
-    "direction": str,
-    "ebb_dir": float,
-    "flags": str,  # TODO:
-    "flood_dir": float,
-    "gust": float,
-    "highest": float,
-    "inferred": lambda x: bool(int(x)),
-    "lowest": float,
-    "month": int,
-    "quality": str,
-    "salinity": float,
-    "sigma": float,
-    "specific_gravity": float,
-    "speed": float,
-    "time": float,
-    "type": str,
-    "value": float,
-    "velocity": float,
-    "year": int,
-}
-
-
-=======
->>>>>>> 22b07ca (Fix merge)
 class COOPS_Interval(Enum):  # noqa: N801
     H = "h"  # Hourly Met data and harmonic predictions will be returned
     HILO = "hilo"  # High/Low tide predictions for all stations.
@@ -232,135 +135,6 @@ class COOPS_Interval(Enum):  # noqa: N801
     NONE = None
 
 
-<<<<<<< HEAD
-COOPS_ProductIntervalMap = {
-    COOPS_Product.WATER_LEVEL: [COOPS_Interval.NONE],
-    COOPS_Product.HOURLY_HEIGHT: [COOPS_Interval.NONE],
-    COOPS_Product.HIGH_LOW: [COOPS_Interval.NONE],
-    COOPS_Product.DAILY_MEAN: [COOPS_Interval.NONE],
-    COOPS_Product.MONTHLY_MEAN: [COOPS_Interval.NONE],
-    COOPS_Product.ONE_MINUTE_WATER_LEVEL: [COOPS_Interval.NONE],
-    COOPS_Product.PREDICTIONS: [
-        COOPS_Interval.H,
-        COOPS_Interval.ONE,
-        COOPS_Interval.FIVE,
-        COOPS_Interval.SIX,
-        COOPS_Interval.TEN,
-        COOPS_Interval.FIFTEEN,
-        COOPS_Interval.THIRTY,
-        COOPS_Interval.SIXTY,
-        COOPS_Interval.HILO,
-        COOPS_Interval.NONE,
-    ],
-    COOPS_Product.CURRENTS: [COOPS_Interval.H, COOPS_Interval.SIX, COOPS_Interval.NONE],
-    COOPS_Product.CURRENTS_PREDICTIONS: [
-        COOPS_Interval.H,
-        COOPS_Interval.ONE,
-        COOPS_Interval.SIX,
-        COOPS_Interval.TEN,
-        COOPS_Interval.THIRTY,
-        COOPS_Interval.SIXTY,
-        COOPS_Interval.MAX_SLACK,
-        COOPS_Interval.NONE,
-    ],
-    COOPS_Product.AIR_GAP: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.WIND: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.AIR_PRESSURE: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.AIR_TEMPERATURE: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.VISIBILITY: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.HUMIDITY: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.WATER_TEMPERATURE: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.CONDUCTIVITY: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.SALINITY: [COOPS_Interval.SIX, COOPS_Interval.H, COOPS_Interval.NONE],
-    COOPS_Product.DATUMS: [COOPS_Interval.NONE],
-}
-
-
-COOPS_MaxInterval = {
-    COOPS_Product.WATER_LEVEL: {COOPS_Interval.NONE: timedelta(days=30)},
-    COOPS_Product.HOURLY_HEIGHT: {COOPS_Interval.NONE: timedelta(days=365)},
-    COOPS_Product.HIGH_LOW: {COOPS_Interval.NONE: timedelta(days=365)},
-    COOPS_Product.DAILY_MEAN: {COOPS_Interval.NONE: timedelta(days=3650)},
-    COOPS_Product.MONTHLY_MEAN: {COOPS_Interval.NONE: timedelta(days=73000)},
-    COOPS_Product.ONE_MINUTE_WATER_LEVEL: {COOPS_Interval.NONE: timedelta(days=4)},
-    COOPS_Product.PREDICTIONS: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.ONE: timedelta(days=365),
-        COOPS_Interval.FIVE: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=365),
-        COOPS_Interval.TEN: timedelta(days=365),
-        COOPS_Interval.FIFTEEN: timedelta(days=365),
-        COOPS_Interval.THIRTY: timedelta(days=365),
-        COOPS_Interval.SIXTY: timedelta(days=365),
-        COOPS_Interval.HILO: timedelta(days=365),
-        COOPS_Interval.NONE: timedelta(days=365),
-    },
-    COOPS_Product.CURRENTS: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.CURRENTS_PREDICTIONS: {
-        COOPS_Interval.H: timedelta(days=30),
-        COOPS_Interval.ONE: timedelta(days=30),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.TEN: timedelta(days=30),
-        COOPS_Interval.THIRTY: timedelta(days=30),
-        COOPS_Interval.SIXTY: timedelta(days=30),
-        COOPS_Interval.MAX_SLACK: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.AIR_GAP: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.WIND: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.AIR_PRESSURE: {
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.AIR_TEMPERATURE: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.VISIBILITY: {
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.HUMIDITY: {
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.WATER_TEMPERATURE: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.CONDUCTIVITY: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.SALINITY: {
-        COOPS_Interval.H: timedelta(days=365),
-        COOPS_Interval.SIX: timedelta(days=30),
-        COOPS_Interval.NONE: timedelta(days=30),
-    },
-    COOPS_Product.DATUMS: {COOPS_Interval.NONE: timedelta(days=30)},
-}
-
-
-=======
->>>>>>> 22b07ca (Fix merge)
 class COOPS_TidalDatum(Enum):  # noqa: N801
     """
     CRD  Only some stations on the Columbia River, WA/OR
