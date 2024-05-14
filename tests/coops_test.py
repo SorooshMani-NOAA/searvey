@@ -3,6 +3,12 @@ from datetime import datetime
 import pytest
 from shapely.geometry import box
 
+from searvey import fetch_coops_station
+from searvey._coops_api import _coops_date
+from searvey._coops_api import _generate_urls
+from searvey._coops_api import COOPS_ProductFieldsNameMap
+from searvey._coops_api import COOPS_ProductFieldTypes
+from searvey.coops import COOPS_Product
 from searvey.coops import coops_product_within_region
 from searvey.coops import COOPS_Station
 from searvey.coops import coops_stations
